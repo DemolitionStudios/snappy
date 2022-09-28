@@ -222,8 +222,15 @@ configure_file(
   "snappy-stubs-public.h.in"
   "${PROJECT_BINARY_DIR}/snappy-stubs-public.h")
 
-add_library(snappy "")
-target_sources(snappy
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(TARGET_NAME "snappy64")
+elseif(CMAKE_SIZEOF_VOID_P EQUAL 4)
+  set(TARGET_NAME "snappy32")
+endif()
+
+
+add_library(${TARGET_NAME} "")
+target_sources(${TARGET_NAME}
   PRIVATE
     "snappy-internal.h"
     "snappy-stubs-internal.h"
@@ -244,18 +251,18 @@ target_sources(snappy
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/snappy-stubs-public.h>
     $<INSTALL_INTERFACE:include/snappy-stubs-public.h>
 )
-target_include_directories(snappy
+target_include_directories(${TARGET_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:include>
 )
-set_target_properties(snappy
+set_target_properties(${TARGET_NAME}
   PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR})
 
-target_compile_definitions(snappy PRIVATE -DHAVE_CONFIG_H)
+target_compile_definitions(${TARGET_NAME} PRIVATE -DHAVE_CONFIG_H)
 if(BUILD_SHARED_LIBS)
-  set_target_properties(snappy PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+  set_target_properties(${TARGET_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif(BUILD_SHARED_LIBS)
 
 if(SNAPPY_BUILD_TESTS OR SNAPPY_BUILD_BENCHMARKS)
@@ -368,7 +375,7 @@ endif(SNAPPY_FUZZING_BUILD)
 include(GNUInstallDirs)
 
 if(SNAPPY_INSTALL)
-  install(TARGETS snappy
+  install(TARGETS ${TARGET_NAME}
     EXPORT SnappyTargets
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
